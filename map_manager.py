@@ -5,8 +5,11 @@ import os
 import copy
 import time
 import random
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
-class map_manager():
+
+class MapManager:
 
     def __init__(self, map_center: Coordinate, zoom=13):
         self.map_center = map_center  # center of the map
@@ -14,6 +17,12 @@ class map_manager():
         self.gmap = gmplot.GoogleMapPlotter(self.map_center.latitude, self.map_center.longitude, self.zoom)
         self.users_trips = dict()  # for each user id in the dictionary, there is a trips dictionary. # for each trip
         # id in the dictionary, there is a trip details struct
+
+    def generateRandomColor(self):
+        """
+        :return: a random color string
+        """
+        return "#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
 
     def doesUserExist(self, user_id):
         """
@@ -41,9 +50,9 @@ class map_manager():
         if self.doesUserExist(user_id):
             print("this user is already known to the system! id: {}".format(user_id))
             return
-        self.users_trips[user_id] = [dict()]
+        self.users_trips[user_id] = dict()
 
-    def addNewTrip(self, user_id, trip_id, trip_details):
+    def addTrip(self, user_id, trip_id, trip_details):
         """
         adds a new trip to the manager
         :param user_id: user id
@@ -97,7 +106,7 @@ class map_manager():
             print("this trip is not known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
             return None
 
-        return self.users_trips[user_id][trip_id].coordinates_list
+        return self.users_trips[user_id][trip_id]["coordinates_list"]
 
     def addCoordinateToTrip(self, user_id, trip_id, coordinate: Coordinate):
         """
@@ -114,7 +123,7 @@ class map_manager():
             print("this trip is not known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
             return
 
-        self.users_trips[user_id][trip_id].coordinates.append(coordinate)
+        self.users_trips[user_id][trip_id]["coordinates_list"].append(coordinate)
 
     def resetMap(self):
         """
@@ -171,23 +180,24 @@ class map_manager():
         if not self.doesUserExist(user_id):
             print("this user is not known to the system! id: {}".format(user_id))
             return
-        for trip_id, _ in self.getTrips(user_id):
+        for trip_id in self.getTrips(user_id):
             self.drawTrip(user_id, trip_id, color, edge_width)
-
-    def generateRandomColor(self):
-        """
-        :return: a random color string
-        """
-        return "#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
 
     def drawAllTrips(self):
         """
-        draws every trip of every user. trips that belong to the same user have the same random color
+        draws every trip of every user. trips that belong to the same user have the same random color. also plots an
+        legend for the colors
         :return:
         """
-        for user_id, _ in self.users_trips:
+        handles = []
+        for user_id in self.users_trips:
             color = self.generateRandomColor()
+            handles.append(mpatches.Patch(color=color, label=user_id))
             self.drawUserTrips(user_id, color)
+
+        plt.figure()
+        plt.legend(handles=handles)
+        plt.show()
 
     def printMap(self):
         """
@@ -200,26 +210,40 @@ class map_manager():
         self.gmap = tmp_gmap
 
 
-
 # coordinate = Coordinate(30.3164945, 78.03219179)
-# manager = map_manager(coordinate)
+# manager = MapManager(coordinate)
 #
 #
 # c1=Coordinate(30.3358376, 77.8701919)
 # c2=Coordinate(30.307977, 78.048457)
 # c3=Coordinate(30.3216419, 78.0413095)
 #
-# coordinates = [c1, c2, c3]
 #
-# manager.drawCoordinates(coordinates, color=manager.generateRandomColor())
-# manager.printMap()
+# manager.addUser("sagi")
+#
+# manager.addTrip("sagi", "trip1", {"coordinates_list" : []})
+#
+# manager.addCoordinateToTrip("sagi", "trip1", c1)
+# manager.addCoordinateToTrip("sagi", "trip1", c2)
+# manager.addCoordinateToTrip("sagi", "trip1", c3)
+#
+#
 #
 # c1=Coordinate(30.3458376, 77.8801919)
 # c2=Coordinate(30.347977, 78.068457)
 # c3=Coordinate(30.3416419, 78.0513095)
 #
-# coordinates = [c1, c2, c3]
+#
+# manager.addUser("tomer")
+#
+# manager.addTrip("tomer", "trip1", {"coordinates_list" : []})
+#
+# manager.addCoordinateToTrip("tomer", "trip1", c1)
+# manager.addCoordinateToTrip("tomer", "trip1", c2)
+# manager.addCoordinateToTrip("tomer", "trip1", c3)
+#
+#
 # manager.resetMap()
-# manager.drawCoordinates(coordinates, color=manager.generateRandomColor())
-# time.sleep(3)
+# manager.drawAllTrips()
+#
 # manager.printMap()
