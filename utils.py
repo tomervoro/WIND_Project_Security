@@ -12,7 +12,7 @@ userAuthToUse = userAuthSagi
 CITY_COORDINATES = [("32.072789677516006", "34.7866778075695"), ("32.072789677516006", "34.7886758075695")]
 CONNECTIONS = dict()
 conn = http.client.HTTPSConnection("api-prod.windride.io")
-Coordinates = collections.namedtuple("Coordinates", ["latitude", "longitude"])
+Coordinate = collections.namedtuple("Coordinates", ["latitude", "longitude"])
 OrderDetails = collections.namedtuple("OrderDetails", ["userId", "coordinates", "order_status"])
 
 class OrderStatus(Enum):
