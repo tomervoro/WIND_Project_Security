@@ -4,8 +4,8 @@ import time
 import http.client
 import collections
 from enum import Enum
+import logging
 PRINT_FLAG = True
-
 userAuthTomer = ""
 userAuthSagi = """clientId=3abd7241-cc27-4c03-85dc-5e7a32c04351;userId=2015f39e-63d4-42d5-b896-3cd95d3f0696;ft=1823d32bfc0a6d6e17f94e75eaf5e3ec"""
 userAuthToUse = userAuthSagi
@@ -14,11 +14,20 @@ CONNECTIONS = dict()
 conn = http.client.HTTPSConnection("api-prod.windride.io")
 Coordinates = collections.namedtuple("Coordinates", ["latitude", "longitude"])
 OrderDetails = collections.namedtuple("OrderDetails", ["userId", "coordinates", "order_status"])
+_logger = logging.getLogger(__name__)
+logging.basicConfig(filename='logfile.log', level=logging.INFO)
+fmt="%(funcName)s():%(lineno)i: %(levelname)s   %(message)s"
+logging.basicConfig(format=fmt)
+
+
+
 
 class OrderStatus(Enum):
     DONE = 1000
     ROLLBACK = 2000
     CANCELLED = 5
+    ON_GOING = 1  #TODO- added values!
+    RESERVE = 6
 
 
 def print_msg(msg):

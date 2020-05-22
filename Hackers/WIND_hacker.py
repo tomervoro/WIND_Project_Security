@@ -1,93 +1,102 @@
+from typing import Dict
 from Scripts.utils import *
-from APIs.WIND import *
-CITY_BOARDS = {}
-USERS_ROUTES = {}
+from Scripts.parallel_utils import open_thread, wait_threads_to_finish
+from APIs.WIND_api import *
+import numpy as np
 
 
-def check_ride_status(status):
-    if status == OrderStatus.CANCELLED:
-        return OrderStatus.ROLLBACK
-    # TODO- add statuses!
+class UsersTracker:
+    def __init__(self):
+        self.ridesIds_to_track = []
 
-
-def track_user(rideId):
-    """
-    get rideId and get the ride's details so that we'll track the user's route
-    :param rideId: rideId to track
-    :return: updates USERS_ROUTES TO HOLD: {userId: {rideId: [list of coordinates]}}
-    """
-    order_details = get_ride_details(rideId)
-    if "undefined" not in order_details.coordinates:
-        last_coord = USERS_ROUTES[order_details.userId][rideId][-1]
-        if order_details.coordinates != last_coord:
-            USERS_ROUTES[order_details.userId][rideId].append(order_details.coordinates)
-    if check_ride_status == OrderStatus.ROLLBACK:
-        USERS_ROUTES[order_details.userId].pop(rideId)
-        return False
-
-def connect_user_to_bike(recent_rides: dict):
-    """
-    :param recent_rides: dictionary of: {rideId: curr_bike_coordinates}
-    :return: list of rideIds to track
-    """
-    ridesIds = []
-    for rideId in recent_rides.keys():
+    def track_user(self, rideId):
+        """
+        get rideId and get the ride's details so that we'll track the user's route
+        :param rideId: rideId to track
+        :return: updates USERS_ROUTES TO HOLD: {userId: {rideId: [list of coordinates]}}
+        """
         order_details = get_ride_details(rideId)
-        ridesIds.append(rideId)
-        USERS_ROUTES[order_details.userId][rideId] = [recent_rides[rideId]]
-    return ridesIds
+        while order_details.order_status == OrderStatus.RESERVE:
+            time.sleep(30)
+            order_details = get_ride_details(rideId)
+
+        while order_details.order_status == OrderStatus.ON_GOING:
+            if "undefined" not in order_details.coordinates:
+                # TODO- Call SAGI's functions
+                pass
+
+    def track_all_users(self, new_rides: Dict[Coordinates, List[str]]) -> None:
+        """
+        call the tracking function for each rideId
+        :param new_rides : dictionary of: {rideId: curr_bike_coordinates}
+        """
+        for rideId in new_rides:
+            self.add_rideId_to_track(rideId)
+
+    def add_rideId_to_track(self, rideId: str) -> None:
+        """
+        add a ride to track and open a thread to track the order
+        :param rideId: ID of ride to track
+        """
+        open_thread(target=self.track_user, args=(rideId,))
 
 
-def get_order_ids(missing_boards: dict):
-    """
-    find all orderIds for all recently ordered boards
-    :param missing_boards: dictionary of missing_boards that were recently ordered: {boardNo: board_coordinates}
-    :return: orders dictionary: {rideId: curr_bike_coordinates}
-    """
-    USERS_ROUTES = {}
-    for boardNo in missing_boards.keys():
-        rideId = get_board_rideId(boardNo)
-        if rideId:
-            USERS_ROUTES[rideId] = missing_boards[boardNo]
-    return USERS_ROUTES
+class FindTargets:
+    def __init__(self):
+        self.users_tracker = UsersTracker()
 
-def get_missing_boards(curr_boards: dict, coordinates: tuple):
-    """
-    find the missing boards that were recently ordered by a user
-    :param curr_boards: dictionary that holds {boardNo: coordinates} of all boards at the current time
-    :param coordinates: a tuple of (lat, long) to check
-    :return: dictionary of missing_boards: {boardNo: board_coordinates}
-    """
-    missing_boards = dict()
-    for boards_id in CITY_BOARDS[coordinates].keys():
-        if not curr_boards.get(boards_id):
-            missing_boards[boards_id] = CITY_BOARDS[coordinates][boards_id]
-            CITY_BOARDS.pop(boards_id)
-    return missing_boards
+    @staticmethod
+    def get_order_ids(missing_boards: Dict[Coordinates, List[str]]) -> Dict[Coordinates, List[str]]:
+        """
+        find all orderIds for all recently ordered boards
+        :param missing_boards: dictionary of missing_boards that were recently ordered: {boardNo: board_coordinates}
+        :return: orders dictionary: {coordinate: <list of missing bikes rideIds>}
+        """
+        order_ids = {}
+        for coordinate in missing_boards:
+            for boardNo in missing_boards[coordinate]:
+                rideId = get_board_rideId(boardNo)
+                if rideId:
+                    order_ids[coordinate] = order_ids.get(coordinate, []) + [rideId]
+        return order_ids
 
+    @staticmethod
+    def get_current_city_boards() -> Dict[Coordinates, List[str]]:
+        """
+        iterate over the city's coordinates get the board in the city
+        return: {coordinate: <list of bikes in that location>}
+        """
+        city_boards = dict()
+        thread_num = 0
+        for coordinate in CITY_COORDINATES:
+            coordinate_to_check = Coordinates(latitude=coordinate[0], longitude=coordinate[1])
+            open_thread(target=get_boards_of_coordinate, args=(coordinate_to_check, city_boards,), name="get_current_city_boards_"+str(thread_num),)
+            thread_num += 1
+        wait_threads_to_finish("get_current_city_boards", thread_num)
+        return city_boards
 
-def get_city_boards():
-    """
-    iterate over the city's coordinates and check if boards gone missing.
-    return: a list dictionary of missing_boards:
-        {boards_id: (<last lat>, <last long>)}
-    """
-    missing_boards = dict()
-    for coordinate in CITY_COORDINATES:
-        res = get_boards(coordinate[0], coordinate[1])
-        missing_boards.update(get_missing_boards(res, coordinate))
-    return missing_boards
+    @staticmethod
+    def get_disappeared_boards(city_boards: Dict[Coordinates, List[str]],
+                               curr_boards: Dict[Coordinates, List[str]]) -> Dict[Coordinates, List[str]]:
+        """
+        get board_ids that existed in the last scan but disappeared from the map in the current scan (->therefore taken by a user)
+        :param city_boards: dict of {Coordinate: <list of board_ids in that Coordinate>} of the last city's scan
+        :param curr_boards: dict of {Coordinate: <list of board_ids in that Coordinate>} of the current city's scan
+        :return: dict of {Coordinate: <list of board_ids in that Coordinate>} of the boards that went missing (->taken by a user)
+        """
+        disappeared_boards = dict()
+        for coordinate in city_boards:
+            boards = list(np.setdiff1d(city_boards[coordinate], curr_boards.get(curr_boards, [])))
+            if boards:
+                disappeared_boards[coordinate] = boards
+        return disappeared_boards
 
+    def collect_disappearing_boards(self):
+        city_boards = dict()
+        while True:
+            curr_city_boards: Dict = self.get_current_city_boards()
+            disappeared_boards: Dict = self.get_disappeared_boards(city_boards, curr_city_boards)
+            new_orders = self.get_order_ids(disappeared_boards)
+            self.users_tracker.track_all_users(new_orders)
+            city_boards.update(curr_city_boards)
 
-def collect_city_boards():
-    """
-    collect all the boards in the city into one dictionary: CITY_COORDINATES (check utils.py)
-    """
-    for coordinate in CITY_COORDINATES:
-        res = get_boards(coordinate[0], coordinate[1])
-        if res:
-            CITY_BOARDS.update(res)
-    print_msg("Built all CITY_BOARDS: {}".format(CITY_BOARDS))
-
-
-#collect_city_boards()
