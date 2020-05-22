@@ -1,5 +1,5 @@
 from typing import Dict
-from Scripts.utils import *
+from Scripts.utils import Coordinate
 from Scripts.parallel_utils import open_thread, wait_threads_to_finish
 from APIs.WIND_api import *
 import numpy as np
@@ -25,7 +25,7 @@ class UsersTracker:
                 # TODO- Call SAGI's functions
                 pass
 
-    def track_all_users(self, new_rides: Dict[Coordinates, List[str]]) -> None:
+    def track_all_users(self, new_rides: Dict[Coordinate, List[str]]) -> None:
         """
         call the tracking function for each rideId
         :param new_rides : dictionary of: {rideId: curr_bike_coordinates}
@@ -46,7 +46,7 @@ class FindTargets:
         self.users_tracker = UsersTracker()
 
     @staticmethod
-    def get_order_ids(missing_boards: Dict[Coordinates, List[str]]) -> Dict[Coordinates, List[str]]:
+    def get_order_ids(missing_boards: Dict[Coordinate, List[str]]) -> Dict[Coordinate, List[str]]:
         """
         find all orderIds for all recently ordered boards
         :param missing_boards: dictionary of missing_boards that were recently ordered: {boardNo: board_coordinates}
@@ -61,7 +61,7 @@ class FindTargets:
         return order_ids
 
     @staticmethod
-    def get_current_city_boards() -> Dict[Coordinates, List[str]]:
+    def get_current_city_boards() -> Dict[Coordinate, List[str]]:
         """
         iterate over the city's coordinates get the board in the city
         return: {coordinate: <list of bikes in that location>}
@@ -69,15 +69,15 @@ class FindTargets:
         city_boards = dict()
         thread_num = 0
         for coordinate in CITY_COORDINATES:
-            coordinate_to_check = Coordinates(latitude=coordinate[0], longitude=coordinate[1])
+            coordinate_to_check = Coordinate(latitude=coordinate[0], longitude=coordinate[1])
             open_thread(target=get_boards_of_coordinate, args=(coordinate_to_check, city_boards,), name="get_current_city_boards_"+str(thread_num),)
             thread_num += 1
         wait_threads_to_finish("get_current_city_boards", thread_num)
         return city_boards
 
     @staticmethod
-    def get_disappeared_boards(city_boards: Dict[Coordinates, List[str]],
-                               curr_boards: Dict[Coordinates, List[str]]) -> Dict[Coordinates, List[str]]:
+    def get_disappeared_boards(city_boards: Dict[Coordinate, List[str]],
+                               curr_boards: Dict[Coordinate, List[str]]) -> Dict[Coordinate, List[str]]:
         """
         get board_ids that existed in the last scan but disappeared from the map in the current scan (->therefore taken by a user)
         :param city_boards: dict of {Coordinate: <list of board_ids in that Coordinate>} of the last city's scan
