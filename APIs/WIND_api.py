@@ -1,4 +1,6 @@
 import json
+from typing import List, Dict
+
 import requests
 from Scripts.utils import *
 
@@ -10,28 +12,31 @@ gen_url = 'http://api-prod.ibyke.io/'
 #gen_url = 'https://pd-prod.zbike.io/'
 
 
-def get_boards(latitude, longitude):
-    url = "http://api-prod.windride.io/v2/boards?latitude={}&longitude={}".format(latitude, longitude)
+def get_boards_of_coordinate(coordinate: Coordinates, city_boards: Dict[Coordinates, List[str]] = None) -> List[str]:
+    """
+    get a list of all boards in specific coordinate
+    :param coordinate: coordinate to check (of type Coordinates)
+    :return: a list of all boards in the given coordinate
+    """
+    url = "http://api-prod.windride.io/v2/boards?latitude={}&longitude={}".format(coordinate.latitude, coordinate.longitude)
     payload = {}
-    headers = {
-        'Authentication': userAuthToUse,
-        'X-Additional-View': 'user;',
-        'X-App-Version': '4.15.0.1651'
-    }
+    headers = {'Authentication': userAuthToUse, 'X-Additional-View': 'user;', 'X-App-Version': '4.15.0.1651'}
     response = requests.request("GET", url, headers=headers, data=payload)
     if check_status(response):
         data = json.loads(response.text.encode('utf8'))
+        boards_list = [board.get('boardNo') for board in data.get('items',[]) if board.get('boardNo')]
+        """
         ret_dict = dict()
         for board in data['items']:
             ret_dict[board['boardNo']] = (board['latitude'], board['longitude'],)
-        return ret_dict
+        """
+        if city_boards:
+            city_boards[coordinate] = boards_list
+        return boards_list
+    return []
 
 
-
-
-
-
-def get_board_rideId(boardNo):
+def get_board_rideId(boardNo: str) -> str:
     """
     return a board's ride ID or None if board isn't taken
     :param boardNo: Board number such as: S0028357
@@ -41,11 +46,13 @@ def get_board_rideId(boardNo):
     payload = {}
     headers = {'Authentication': userAuthToUse, 'X-App-Version': '4.15.0.1651'}
     response = requests.request("GET", url, headers=headers, data=payload)
-    data = json.loads(response.text.encode('utf8'))
-    print(data['board']['currentRideId'])
+    if check_status(response):
+        data = json.loads(response.text.encode('utf8'))
+        return data.get('board', dict()).get('currentRideId')
+    return ''
 
 
-def get_ride_details(rideId):
+def get_ride_details(rideId: str) -> OrderDetails:
     """
     get ride details
     :param rideId: rideId to check
