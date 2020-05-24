@@ -1,5 +1,5 @@
 import webbrowser
-from utils import Coordinate
+from utils import Coordinate, TripDetails
 import gmplot
 import os
 import copy
@@ -11,7 +11,7 @@ import matplotlib.patches as mpatches
 
 class MapManager:
 
-    def __init__(self, map_center: Coordinate, zoom=13):
+    def __init__(self, map_center: Coordinate= Coordinate(32.072593, 34.776562), zoom=13):
         self.map_center = map_center  # center of the map
         self.zoom = zoom  # area of map to display. 13 is pretty good
         self.gmap = gmplot.GoogleMapPlotter(self.map_center.latitude, self.map_center.longitude, self.zoom)
@@ -57,7 +57,7 @@ class MapManager:
         self.users_trips[user_id] = dict()
         self.users_colors[user_id] = color
 
-    def addTrip(self, user_id, trip_id, trip_details):
+    def addTrip(self, user_id, trip_id, trip_details: TripDetails):
         """
         adds a new trip to the manager
         :param user_id: user id
@@ -111,7 +111,7 @@ class MapManager:
             print("this trip is not known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
             return None
 
-        return self.users_trips[user_id][trip_id]["coordinates_list"]
+        return self.users_trips[user_id][trip_id].coordinates_list
 
     def addCoordinateToTrip(self, user_id, trip_id, coordinate: Coordinate):
         """
@@ -122,13 +122,11 @@ class MapManager:
         :return:
         """
         if not self.doesUserExist(user_id):
-            print("this user is not known to the system! id: {}".format(user_id))
-            return
+            self.addUser(user_id)
         if not self.doesTripExist(user_id, trip_id):
-            print("this trip is not known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
-            return
+            self.addTrip(user_id, trip_id, TripDetails([]))
 
-        self.users_trips[user_id][trip_id]["coordinates_list"].append(coordinate)
+        self.users_trips[user_id][trip_id].coordinates_list.append(coordinate)
 
     def resetMap(self):
         """
@@ -206,6 +204,7 @@ class MapManager:
 
         plt.figure()
         plt.legend(handles=handles)
+        plt.savefig('users_legend.png')
         plt.show()
 
     def printMap(self):
@@ -218,46 +217,41 @@ class MapManager:
         webbrowser.open('file://' + os.path.realpath("map.html"))
         self.gmap = tmp_gmap
 
-# class TripDetails:
-#
-#     def ___init___(self):
-#         self.coordinates = []
 
-# coordinate = Coordinate(30.3164945, 78.03219179)
-# manager = MapManager(coordinate)
-#
-#
-# c1=Coordinate(30.3358376, 77.8701919)
-# c2=Coordinate(30.307977, 78.048457)
-# c3=Coordinate(30.3216419, 78.0413095)
-#
-#
-# manager.addUser("sagi")
-#
-# manager.addTrip("sagi", "trip1", {"coordinates_list" : []})
-#
-# manager.addCoordinateToTrip("sagi", "trip1", c1)
-# manager.addCoordinateToTrip("sagi", "trip1", c2)
-# manager.addCoordinateToTrip("sagi", "trip1", c3)
-#
-#
-#
-# c1=Coordinate(30.3458376, 77.8801919)
-# c2=Coordinate(30.347977, 78.068457)
-# c3=Coordinate(30.3416419, 78.0513095)
-#
-#
-# manager.addUser("tomer")
-#
-# manager.addTrip("tomer", "trip1", {"coordinates_list" : []})
-#
-# manager.addCoordinateToTrip("tomer", "trip1", c1)
-# manager.addCoordinateToTrip("tomer", "trip1", c2)
-# manager.addCoordinateToTrip("tomer", "trip1", c3)
-#
-#
-# manager.resetMap()
-# manager.drawAllTrips()
-#
-# manager.printMap()
-#
+coordinate = Coordinate(32.072593, 34.776562)
+manager = MapManager(coordinate)
+
+
+c1=Coordinate(32.082593, 34.778562)
+c2=Coordinate(32.081593, 34.696562)
+c3=Coordinate(32.087593, 34.706562)
+
+
+manager.addUser("sagi")
+
+manager.addTrip("sagi", "trip1", TripDetails([]))
+
+manager.addCoordinateToTrip("sagi", "trip1", c1)
+manager.addCoordinateToTrip("sagi", "trip1", c2)
+manager.addCoordinateToTrip("sagi", "trip1", c3)
+
+
+
+c1=Coordinate(32.182593, 34.878562)
+c2=Coordinate(32.181593, 34.796562)
+c3=Coordinate(32.187593, 34.806562)
+
+manager.addUser("tomer")
+
+manager.addTrip("tomer", "trip1", TripDetails([]))
+
+manager.addCoordinateToTrip("tomer", "trip1", c1)
+manager.addCoordinateToTrip("tomer", "trip1", c2)
+manager.addCoordinateToTrip("tomer", "trip1", c3)
+
+
+manager.resetMap()
+manager.drawAllTrips()
+
+manager.printMap()
+

@@ -14,6 +14,7 @@ CONNECTIONS = dict()
 conn = http.client.HTTPSConnection("api-prod.windride.io")
 Coordinate = collections.namedtuple("Coordinates", ["latitude", "longitude"])
 OrderDetails = collections.namedtuple("OrderDetails", ["userId", "coordinates", "order_status"])
+TripDetails = collections.namedtuple("TripDetails", ["coordinates_list"])
 _logger = logging.getLogger(__name__)
 logging.basicConfig(filename='logfile.log', level=logging.INFO)
 fmt="%(funcName)s():%(lineno)i: %(levelname)s   %(message)s"
