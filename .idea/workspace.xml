@@ -144,7 +144,8 @@
       <workItem from="1588851105374" duration="2531000" />
       <workItem from="1588855724003" duration="18000" />
       <workItem from="1590129426207" duration="406000" />
-      <workItem from="1590130494002" duration="11483000" />
+      <workItem from="1590130494002" duration="12490000" />
+      <workItem from="1590334488552" duration="727000" />
     </task>
     <task id="LOCAL-00001" summary="created map manager">
       <created>1590144727700</created>
@@ -160,7 +161,14 @@
       <option name="project" value="LOCAL" />
       <updated>1590147229379</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="fixed bugs and added some features">
+      <created>1590149573619</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1590149573619</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -171,7 +179,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
@@ -180,11 +190,12 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="created map manager" />
     <MESSAGE value="added trips drawing functions and documentation" />
-    <option name="LAST_COMMIT_MESSAGE" value="added trips drawing functions and documentation" />
+    <MESSAGE value="fixed bugs and added some features" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed bugs and added some features" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Scripts$BIRD.coverage" NAME="BIRD Coverage Results" MODIFIED="1588852822714" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/APIs" />
-    <SUITE FILE_PATH="coverage/WIND_Project_Security$map_manager.coverage" NAME="map_manager Coverage Results" MODIFIED="1590149506824" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/WIND_Project_Security$map_manager.coverage" NAME="map_manager Coverage Results" MODIFIED="1590335173881" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Scripts$curl_sender.coverage" NAME="curl_sender Coverage Results" MODIFIED="1588084452381" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="debuggerHistoryManager">

@@ -17,6 +17,7 @@ class MapManager:
         self.gmap = gmplot.GoogleMapPlotter(self.map_center.latitude, self.map_center.longitude, self.zoom)
         self.users_trips = dict()  # for each user id in the dictionary, there is a trips dictionary. # for each trip
         # id in the dictionary, there is a trip details struct
+        self.users_colors = dict()  # for each user id in the dictionary, there is a matching color
 
     def generateRandomColor(self):
         """
@@ -41,16 +42,20 @@ class MapManager:
             return False
         return trip_id in self.users_trips[user_id]
 
-    def addUser(self, user_id):
+    def addUser(self, user_id, color='default'):
         """
         adds a new user to the manager, with an empty trips dictionary
+        :param color: color
         :param user_id: user id
         :return:
         """
         if self.doesUserExist(user_id):
             print("this user is already known to the system! id: {}".format(user_id))
             return
+        if color == 'default':
+            color = self.generateRandomColor()
         self.users_trips[user_id] = dict()
+        self.users_colors[user_id] = color
 
     def addTrip(self, user_id, trip_id, trip_details):
         """
@@ -132,7 +137,7 @@ class MapManager:
         """
         self.gmap = gmplot.GoogleMapPlotter(self.map_center.latitude, self.map_center.longitude, self.zoom)
 
-    def drawCoordinates(self, coordinates, color='cornflowerblue', edge_width=2.5):
+    def drawCoordinates(self, coordinates, color='default', edge_width=2.5):
         """
         draws the coordinates on the map
         :param coordinates: coordinates list
@@ -149,9 +154,11 @@ class MapManager:
 
         self.gmap.scatter(latitude_list, longitude_list, '# FF0000', size=40, marker=False)
 
+        if color == 'default':
+            color = self.generateRandomColor()
         self.gmap.plot(latitude_list, longitude_list, color, edge_width=edge_width)
 
-    def drawTrip(self, user_id, trip_id, color='cornflowerblue', edge_width=2.5):
+    def drawTrip(self, user_id, trip_id, color='default', edge_width=2.5):
         """
         draws a user's trip
         :param user_id: user id
@@ -167,9 +174,11 @@ class MapManager:
             print("this trip is not known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
             return
 
+        if color == 'default':
+            color = self.users_colors[user_id]
         self.drawCoordinates(self.getTripCoordinates(user_id, trip_id), color, edge_width)
 
-    def drawUserTrips(self, user_id, color='cornflowerblue', edge_width=2.5):
+    def drawUserTrips(self, user_id, color='default', edge_width=2.5):
         """
         draws all trips of user with the same color
         :param user_id:
@@ -191,7 +200,7 @@ class MapManager:
         """
         handles = []
         for user_id in self.users_trips:
-            color = self.generateRandomColor()
+            color = self.users_colors[user_id]
             handles.append(mpatches.Patch(color=color, label=user_id))
             self.drawUserTrips(user_id, color)
 
@@ -209,6 +218,10 @@ class MapManager:
         webbrowser.open('file://' + os.path.realpath("map.html"))
         self.gmap = tmp_gmap
 
+# class TripDetails:
+#
+#     def ___init___(self):
+#         self.coordinates = []
 
 # coordinate = Coordinate(30.3164945, 78.03219179)
 # manager = MapManager(coordinate)
@@ -247,3 +260,4 @@ class MapManager:
 # manager.drawAllTrips()
 #
 # manager.printMap()
+#
