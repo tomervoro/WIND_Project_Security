@@ -7,7 +7,7 @@ import time
 import random
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-
+MIN_DISTANCE_BETWEEN_COORDINATES = 0.0002
 
 class MapManager:
 
@@ -113,6 +113,10 @@ class MapManager:
 
         return self.users_trips[user_id][trip_id].coordinates_list
 
+    @staticmethod
+    def distance_between_coordinates(coordinate1 : Coordinate, coordinate2: Coordinate):
+        return ((coordinate1.latitude - coordinate2.latitude)**2 + (coordinate1.longitude - coordinate2.longitude)**2)**0.5
+
     def addCoordinateToTrip(self, user_id, trip_id, coordinate: Coordinate):
         """
         adds a new coordinate to the trip
@@ -121,6 +125,9 @@ class MapManager:
         :param coordinate: new coordinate
         :return:
         """
+        lat = float(coordinate.latitude)
+        long = float(coordinate.longitude)
+        coordinate = Coordinate(latitude=lat, longitude=long)
         if not self.doesUserExist(user_id):
             self.addUser(user_id)
         if not self.doesTripExist(user_id, trip_id):
@@ -128,7 +135,7 @@ class MapManager:
 
         coordinates_list = self.getTripCoordinates(user_id, trip_id)
         if len(coordinates_list) > 0:
-            if coordinates_list[-1] == coordinate:
+            if self.distance_between_coordinates(coordinates_list[-1], coordinate) < MIN_DISTANCE_BETWEEN_COORDINATES:
                 return
         self.users_trips[user_id][trip_id].coordinates_list.append(coordinate)
 
@@ -139,7 +146,7 @@ class MapManager:
         """
         self.gmap = gmplot.GoogleMapPlotter(self.map_center.latitude, self.map_center.longitude, self.zoom)
 
-    def drawCoordinates(self, coordinates, color='default', edge_width=2.5, map=None):
+    def drawCoordinates(self, coordinates, color='default', edge_width=4, map=None):
         """
         draws the coordinates on the map
         :param map:
@@ -159,7 +166,7 @@ class MapManager:
             color = self.generateRandomColor()
         if map is None:
             map = self.gmap
-        map.scatter(latitude_list, longitude_list, '# FF0000', size=40, marker=False)
+        map.scatter(latitude_list, longitude_list, color, size=10, marker=True)
         map.plot(latitude_list, longitude_list, color, edge_width=edge_width)
 
     def drawTrip(self, user_id, trip_id, color='default', edge_width=2.5, map=None):
@@ -173,10 +180,10 @@ class MapManager:
         :return:
         """
         if not self.doesUserExist(user_id):
-            print("this user is not known to the system! id: {}".format(user_id))
+            #print("this user is not known to the system! id: {}".format(user_id))
             return
         if not self.doesTripExist(user_id, trip_id):
-            print("this trip is not known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
+            #print("this trip is not known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
             return
 
         if color == 'default':
@@ -222,7 +229,7 @@ class MapManager:
         plt.figure()
         plt.legend(handles=handles)
         plt.savefig('users_legend.png')
-        plt.show()
+        #plt.show()
 
         if map is None:
             map = self.gmap

@@ -3,7 +3,7 @@ import time
 from typing import Callable, Tuple
 from utils import _logger
 THREADS_LIST = []
-MAX_NUM_THREADS = 40
+MAX_NUM_THREADS = 20
 MAX_WAIT_TIME_SECS = 120  # 2 min
 
 
@@ -20,17 +20,8 @@ def open_thread(target: Callable, args: Tuple = (), name=None) -> None:
         THREADS_LIST.pop(0)
 
 
-def count_open_threads(name_prefix="") -> int:
-    cnt = 0
-    for thread in THREADS_LIST:
-        cnt += name_prefix in thread.getName()
-    return cnt
-
-
-def wait_threads_to_finish(name_prefix="", limit=0):
-    t_start = time.time()
-    while count_open_threads("get_current_city_boards") < limit:
-        t_curr = time.time()
-        if t_curr - t_start > MAX_WAIT_TIME_SECS:
-            _logger.error("TIMEOUT for threads of function: {}".format(name_prefix))
-            break
+def wait_threads_to_finish(name_prefix=""):
+    for indx, thread in enumerate(THREADS_LIST):
+        if name_prefix in thread.getName():
+            thread.join()
+            THREADS_LIST.pop(indx)
