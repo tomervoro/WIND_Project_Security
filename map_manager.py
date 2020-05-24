@@ -205,28 +205,30 @@ class MapManager:
         legend for the colors
         :return:
         """
-        handles = []
         for user_id in self.users_trips:
             color = self.users_colors[user_id]
-            handles.append(mpatches.Patch(color=color, label=user_id))
             self.drawUserTrips(user_id, color, map=map)
-
-        plt.figure()
-        plt.legend(handles=handles)
-        plt.savefig('users_legend.png')
-        plt.show()
 
     def printMap(self, map=None):
         """
         prints the map
         :return:
         """
+        handles = []
+        for user_id in self.users_trips:
+            color = self.users_colors[user_id]
+            handles.append(mpatches.Patch(color=color, label=user_id))
+
+        plt.figure()
+        plt.legend(handles=handles)
+        plt.savefig('users_legend.png')
+        plt.show()
+
         if map is None:
             map = self.gmap
         tmp_gmap = copy.deepcopy(map)
-        map.draw("map.html")
+        tmp_gmap.draw("map.html")
         webbrowser.open('file://' + os.path.realpath("map.html"))
-        map = tmp_gmap
 
     def generateMap(self):
         return gmplot.GoogleMapPlotter(self.map_center.latitude, self.map_center.longitude, self.zoom)
