@@ -169,7 +169,7 @@ class MapManager:
         if map is None:
             map = self.gmap
 
-        map.marker(latitude_list[0], longitude_list[0], '#FFFFFF')
+        map.marker(latitude_list[0], longitude_list[0], '#000000')
         map.scatter(latitude_list, longitude_list, color, size=30, marker=False)
         map.plot(latitude_list, longitude_list, color, edge_width=edge_width)
 
