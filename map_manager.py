@@ -15,9 +15,10 @@ class MapManager:
     def __init__(self, map_center=None, zoom=13):
         if map_center is None:
             map_center = [32.072593, 34.776562]
+        self.api_key='AIzaSyAUrUNe8n80OAW5Nabxu2Aly_GQeYLFw0k'
         self.map_center = map_center  # center of the map
         self.zoom = zoom  # area of map to display. 13 is pretty good
-        self.gmap = gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom)
+        self.gmap = gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom, apikey=self.api_key)
         self.users_trips = dict()  # for each user id in the dictionary, there is a trips dictionary. # for each trip
         # id in the dictionary, there is a trip details struct
         self.users_colors = dict()  # for each user id in the dictionary, there is a matching color
@@ -142,7 +143,7 @@ class MapManager:
         resets the map to be blank (removes all plots)
         :return:
         """
-        self.gmap = gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom)
+        self.gmap = gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom, apikey=self.api_key)
 
     def drawCoordinates(self, coordinates, color='default', edge_width=3, map=None):
         """
@@ -244,7 +245,7 @@ class MapManager:
         plt.show()
 
     def generateMap(self):
-        return gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom)
+        return gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom, apikey=self.api_key)
 
     def saveToJson(self):
         with open('users_trips.json', 'w') as fp:
