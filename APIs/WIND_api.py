@@ -1,7 +1,7 @@
 import json
 from typing import List, Dict
 import requests
-from Scripts.utils import Coordinate, check_status, OrderDetails, userAuthToUse, _logger
+from utils import Coordinate, check_status, OrderDetails, userAuthToUse, _logger
 
 
 #gen_url = 'http://api-prod.windride.io/'

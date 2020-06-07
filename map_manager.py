@@ -78,7 +78,7 @@ class MapManager:
             print("this trip is already known to the system! user_id: {}, trip_id: {}".format(user_id, trip_id))
             return
 
-        self.users_trips[user_id][trip_id] = coordinates_list
+        self.users_trips[user_id][trip_id] = [float(coordinate) for coordinate in coordinates_list]
 
     def getTrips(self, user_id):
         """
@@ -119,7 +119,7 @@ class MapManager:
 
         return self.users_trips[user_id][trip_id]
 
-    def addCoordinateToTrip(self, user_id, trip_id, coordinate):
+    def addCoordinateToTrip(self, user_id, trip_id, coordinate: Coordinate):
         """
         adds a new coordinate to the trip
         :param user_id: user id
@@ -130,13 +130,12 @@ class MapManager:
         if not self.doesUserExist(user_id):
             self.addUser(user_id)
         if not self.doesTripExist(user_id, trip_id):
-            self.addTrip(user_id, trip_id, TripDetails([]))
-
+            self.addTrip(user_id, trip_id, [])
         coordinates_list = self.getTripCoordinates(user_id, trip_id)
         if len(coordinates_list) > 0:
-            if coordinates_list[-1] == coordinate:
+            if coordinates_list[-1] == [coordinate.latitude, coordinate.longitude]:
                 return
-        self.users_trips[user_id][trip_id].append(coordinate)
+        self.users_trips[user_id][trip_id].append([float(coordinate.latitude), float(coordinate.longitude)])
 
     def resetMap(self):
         """
@@ -145,7 +144,7 @@ class MapManager:
         """
         self.gmap = gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom, apikey=self.api_key)
 
-    def drawCoordinates(self, coordinates, color='default', edge_width=3, map=None):
+    def drawCoordinates(self, coordinates, color='default', edge_width=3, map=None, user_id='unknown', trip_id='unknown'):
         """
         draws the coordinates on the map
         :param map:
@@ -156,7 +155,6 @@ class MapManager:
         """
         if len(coordinates) == 0:
             return
-
         latitude_list = []
         longitude_list = []
 
@@ -169,8 +167,9 @@ class MapManager:
         if map is None:
             map = self.gmap
 
-        map.marker(latitude_list[0], longitude_list[0], '#000000')
-        map.scatter(latitude_list, longitude_list, color, size=30, marker=False)
+        details = "User ID: {}, Trip ID: {}".format(user_id, trip_id)
+        map.marker(latitude_list[0], longitude_list[0], '#FFFFFF', title=details)
+        map.scatter(latitude_list, longitude_list, color, size=15, marker=False)
         map.plot(latitude_list, longitude_list, color, edge_width=edge_width)
 
     def drawTrip(self, user_id, trip_id, color='default', edge_width=3, map=None):
@@ -193,7 +192,7 @@ class MapManager:
         if color == 'default':
             color = self.users_colors[user_id]
 
-        return self.drawCoordinates(self.getTripCoordinates(user_id, trip_id), color, edge_width, map)
+        return self.drawCoordinates(self.getTripCoordinates(user_id, trip_id), color, edge_width, map, user_id=user_id, trip_id=trip_id)
 
     def drawUserTrips(self, user_id, color='default', edge_width=3, map=None):
         """
@@ -248,53 +247,55 @@ class MapManager:
         return gmplot.GoogleMapPlotter(self.map_center[0], self.map_center[1], self.zoom, apikey=self.api_key)
 
     def saveToJson(self):
+        print("saving to json")
         with open('users_trips.json', 'w') as fp:
             json.dump(self.users_trips, fp)
         with open('users_colors.json', 'w') as fp:
             json.dump(self.users_colors, fp)
 
     def loadFromJson(self):
+        print("loading from json")
         with open('users_trips.json', 'r') as fp:
             self.users_trips = json.load(fp)
         with open('users_colors.json', 'r') as fp:
             self.users_colors = json.load(fp)
 
-coordinate = [32.072593, 34.776562]
-manager = MapManager(coordinate)
-mymap = manager.generateMap()
-
-c1=[32.082593, 34.778562]
-c2=[32.081593, 34.696562]
-c3=[32.087593, 34.706562]
-
-
-manager.addUser("sagi")
-
-manager.addTrip("sagi", "trip1")
-
-manager.addCoordinateToTrip("sagi", "trip1", c1)
-manager.addCoordinateToTrip("sagi", "trip1", c2)
-manager.addCoordinateToTrip("sagi", "trip1", c3)
-
-manager.saveToJson()
-
-manager.loadFromJson()
-
-c1=[32.182593, 34.878562]
-c2=[32.181593, 34.796562]
-c3=[32.187593, 34.806562]
-
-manager.addUser("tomer")
-
-manager.addTrip("tomer", "trip1", [])
-
-manager.addCoordinateToTrip("tomer", "trip1", c1)
-manager.addCoordinateToTrip("tomer", "trip1", c2)
-manager.addCoordinateToTrip("tomer", "trip1", c3)
-
-
-manager.resetMap()
-manager.drawAllTrips()
-
-manager.printMap()
+# coordinate = [32.072593, 34.776562]
+# manager = MapManager(coordinate)
+# mymap = manager.generateMap()
+#
+# c1=[32.082593, 34.778562]
+# c2=[32.081593, 34.696562]
+# c3=[32.087593, 34.706562]
+#
+#
+# manager.addUser("sagi")
+#
+# manager.addTrip("sagi", "trip1")
+#
+# manager.addCoordinateToTrip("sagi", "trip1", c1)
+# manager.addCoordinateToTrip("sagi", "trip1", c2)
+# manager.addCoordinateToTrip("sagi", "trip1", c3)
+#
+# manager.saveToJson()
+#
+# manager.loadFromJson()
+#
+# c1=[32.182593, 34.878562]
+# c2=[32.181593, 34.796562]
+# c3=[32.187593, 34.806562]
+#
+# manager.addUser("tomer")
+#
+# manager.addTrip("tomer", "trip1", [])
+#
+# manager.addCoordinateToTrip("tomer", "trip1", c1)
+# manager.addCoordinateToTrip("tomer", "trip1", c2)
+# manager.addCoordinateToTrip("tomer", "trip1", c3)
+#
+#
+# manager.resetMap()
+# manager.drawAllTrips()
+#
+# manager.printMap()
 

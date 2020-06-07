@@ -1,8 +1,8 @@
 from time import sleep
 from typing import Dict, List
-from Scripts.parallel_utils import open_thread, wait_threads_to_finish
+from parallel_utils import open_thread, wait_threads_to_finish
 from APIs.WIND_api import get_ride_details, get_board_rideId, get_boards_of_coordinate
-from Scripts.utils import CITY_COORDINATES, OrderStatus, Coordinate
+from utils import CITY_COORDINATES, OrderStatus, Coordinate
 from map_manager import MapManager
 import numpy as np
 
@@ -11,6 +11,7 @@ class UsersTracker:
     def __init__(self):
         self.ridesIds_to_track = []
         self.map_manager = MapManager()
+        self.map_manager.loadFromJson()
 
     def track_ride(self, rideId):
         """
@@ -33,12 +34,14 @@ class UsersTracker:
                 cnt += 1
 
             order_details = get_ride_details(rideId)
-            if cnt % 100 == 0:
-                self.map_manager.drawTrip(user_id=order_details.userId, trip_id=order_details.order_id)
+            if cnt % 20 == 0:
+                self.map_manager.drawAllTrips() # drawTrip(user_id=order_details.userId, trip_id=order_details.order_id)
                 self.map_manager.printMap()
+                self.map_manager.saveToJson()
 
-        self.map_manager.drawTrip(user_id=order_details.userId, trip_id=order_details.order_id)
+        self.map_manager.drawAllTrips()  # drawTrip(user_id=order_details.userId, trip_id=order_details.order_id)
         self.map_manager.printMap()
+        self.map_manager.saveToJson()
 
     def add_rideId_to_track(self, rideId: str) -> None:
         """
